@@ -1,0 +1,188 @@
+--===========================================================
+-- ⚡ ULTRA MOBILE FIX LAG + THANK YOU SCREEN + by Rika + FPS/Ping
+--===========================================================
+
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local Lighting = game:GetService("Lighting")
+local Workspace = game:GetService("Workspace")
+local Stats = game:GetService("Stats")
+local Player = Players.LocalPlayer
+local gui = Instance.new("ScreenGui", Player:WaitForChild("PlayerGui"))
+gui.ResetOnSpawn = false
+gui.IgnoreGuiInset = true
+
+-- ===================== SIÊU FIX LAG =====================
+pcall(function()
+    Lighting.GlobalShadows = false
+    Lighting.FogEnd = 9e9
+    Lighting.Brightness = 2
+    Lighting.ClockTime = 12
+end)
+
+for _, v in pairs(Lighting:GetChildren()) do
+    if v:IsA("BloomEffect") or v:IsA("BlurEffect") or v:IsA("DepthOfFieldEffect")
+    or v:IsA("SunRaysEffect") or v:IsA("ColorCorrectionEffect") then
+        v.Enabled = false
+    end
+end
+
+pcall(function()
+    Workspace.Terrain.WaterWaveSize = 0
+    Workspace.Terrain.WaterWaveSpeed = 0
+    Workspace.Terrain.WaterTransparency = 0.7
+    Workspace.Terrain.WaterReflectance = 0
+end)
+
+local function clearEffects(obj)
+    if obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Smoke")
+    or obj:IsA("Fire") or obj:IsA("Beam") or obj:IsA("Sparkles") then
+        obj.Enabled = false
+    end
+end
+for _, v in pairs(Workspace:GetDescendants()) do clearEffects(v) end
+Workspace.DescendantAdded:Connect(clearEffects)
+
+for _, obj in pairs(Workspace:GetDescendants()) do
+    if obj:IsA("BasePart") then obj.CastShadow = false end
+end
+
+Player.Character.DescendantAdded:Connect(function(v)
+    if v:IsA("Accessory") or v:IsA("ShirtGraphic") or v:IsA("Shirt") or v:IsA("Pants") then
+        v:Destroy()
+    end
+end)
+
+-- ===================== FPS/PING PANEL =====================
+local panel = Instance.new("Frame", gui)
+panel.Size = UDim2.new(0,120,0,40)
+panel.Position = UDim2.new(0, 10, 0, 50)
+panel.BackgroundColor3 = Color3.fromRGB(0,0,0)
+panel.BackgroundTransparency = 0.35
+panel.AnchorPoint = Vector2.new(0,0)
+Instance.new("UICorner", panel)
+
+local fpsTxt = Instance.new("TextLabel", panel)
+fpsTxt.Size = UDim2.new(0.5,0,1,0)
+fpsTxt.BackgroundTransparency = 1
+fpsTxt.TextColor3 = Color3.fromRGB(255,255,255)
+fpsTxt.TextScaled = true
+fpsTxt.Font = Enum.Font.GothamBold
+fpsTxt.Text = "FPS:0"
+
+local pingTxt = Instance.new("TextLabel", panel)
+pingTxt.Size = UDim2.new(0.5,0,1,0)
+pingTxt.Position = UDim2.new(0.5,0,0,0)
+pingTxt.BackgroundTransparency = 1
+pingTxt.TextColor3 = Color3.fromRGB(255,255,120)
+pingTxt.TextScaled = true
+pingTxt.Font = Enum.Font.GothamBold
+pingTxt.Text = "Ping:0"
+
+local timer = 0
+RunService.RenderStepped:Connect(function(dt)
+    timer = timer + dt
+    if timer >= 0.3 then
+        timer = 0
+        fpsTxt.Text = "FPS:"..math.floor(1/dt)
+        local pingStat = Stats.Network:FindFirstChild("ServerStatsItem")
+        if pingStat then pingTxt.Text = "Ping:"..math.floor(pingStat["Data Ping"]:GetValue()) end
+        local t = tick()%5/5
+        local c = Color3.fromHSV(t,1,1)
+        fpsTxt.TextColor3 = c
+        pingTxt.TextColor3 = c
+    end
+end)
+
+-- Kéo thả panel nhẹ
+local dragging, dragInput, mousePos, framePos
+panel.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        mousePos = input.Position
+        framePos = panel.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then dragging = false end
+        end)
+    end
+end)
+panel.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then dragInput = input end
+end)
+RunService.RenderStepped:Connect(function()
+    if dragging and dragInput then
+        local delta = dragInput.Position - mousePos
+        panel.Position = UDim2.new(framePos.X.Scale, framePos.X.Offset + delta.X,
+                                   framePos.Y.Scale, framePos.Y.Offset + delta.Y)
+    end
+end)
+
+-- ===================== BY RIKA =====================
+local byRika = Instance.new("TextLabel", gui)
+byRika.Size = UDim2.new(0,200,0,25)
+byRika.Position = UDim2.new(0.5,-100,1,-30)
+byRika.BackgroundTransparency = 1
+byRika.Text = "by Rika"
+byRika.Font = Enum.Font.GothamBold
+byRika.TextScaled = true
+byRika.TextStrokeTransparency = 0.7
+
+RunService.RenderStepped:Connect(function()
+    local t = tick()%5/5
+    byRika.TextColor3 = Color3.fromHSV(t,1,1)
+end)
+
+-- ===================== THANK YOU SCREEN =====================
+local overlay = Instance.new("Frame", gui)
+overlay.Size = UDim2.new(1,0,1,0)
+overlay.Position = UDim2.new(0,0,0,0)
+overlay.BackgroundColor3 = Color3.fromRGB(0,0,0)
+overlay.BackgroundTransparency = 0
+overlay.Visible = false
+
+local madeTxt = Instance.new("TextLabel", overlay)
+madeTxt.Size = UDim2.new(0.9,0,0.1,0)
+madeTxt.Position = UDim2.new(0.05,0,0.3,0)
+madeTxt.BackgroundTransparency = 1
+madeTxt.Text = "Made in Viet Nam do người chơi RikaMidorichan làm ra"
+madeTxt.Font = Enum.Font.GothamBold
+madeTxt.TextScaled = true
+madeTxt.TextColor3 = Color3.fromRGB(255,255,255)
+madeTxt.TextWrapped = true
+madeTxt.TextXAlignment = Enum.TextXAlignment.Center
+
+local thankTxt = Instance.new("TextLabel", overlay)
+thankTxt.Size = UDim2.new(0.8,0,0.2,0)
+thankTxt.Position = UDim2.new(0.1,0,0.45,0)
+thankTxt.BackgroundTransparency = 1
+thankTxt.Text = "Cảm ơn đã sử dụng"
+thankTxt.Font = Enum.Font.GothamBold
+thankTxt.TextScaled = true
+thankTxt.TextColor3 = Color3.fromRGB(255,255,255)
+
+local discordTxt = Instance.new("TextLabel", overlay)
+discordTxt.Size = UDim2.new(0.9,0,0.08,0)
+discordTxt.Position = UDim2.new(0.05,0,0.6,0)
+discordTxt.BackgroundTransparency = 1
+discordTxt.Text = "https://discord.gg/rqEngyEha"
+discordTxt.Font = Enum.Font.GothamBold
+discordTxt.TextScaled = true
+discordTxt.TextWrapped = true
+discordTxt.TextXAlignment = Enum.TextXAlignment.Center
+discordTxt.TextColor3 = Color3.fromRGB(255,255,255)
+
+local exitBtn = Instance.new("TextButton", overlay)
+exitBtn.Size = UDim2.new(0.3,0,0.08,0)
+exitBtn.Position = UDim2.new(0.35,0,0.7,0)
+exitBtn.BackgroundColor3 = Color3.fromRGB(100,100,100)
+exitBtn.Text = "Bỏ qua"
+exitBtn.Font = Enum.Font.Gotham
+exitBtn.TextScaled = true
+exitBtn.TextColor3 = Color3.fromRGB(255,255,255)
+exitBtn.MouseButton1Click:Connect(function()
+    overlay.Visible = false
+end)
+
+delay(1,function()
+    overlay.Visible = true
+end)
